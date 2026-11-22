@@ -1,0 +1,20 @@
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Users can only read and write to their own document.
+    match /users/{userId} {
+      allow read, update: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null;
+    }
+
+    // Users can only read their own call logs.
+    match /callLogs/{logId} {
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      // Creation and updates are handled by the backend with admin SDK, so client writes are denied.
+      allow write: if false;
+    }
+  }
+}
